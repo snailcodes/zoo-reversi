@@ -1,5 +1,6 @@
-import { i18nMetaToJSDoc } from '@angular/compiler/src/render3/view/i18n/meta';
 import { Component, OnInit } from '@angular/core';
+
+type locations = [number, number][];
 
 @Component({
     selector: 'app-board',
@@ -7,14 +8,15 @@ import { Component, OnInit } from '@angular/core';
     styleUrls: ['./board.component.scss'],
 })
 export class BoardComponent implements OnInit {
-    squares!: (undefined | 'X' | 'O')[];
+    squares!: ('X' | 'O' | undefined)[][];
+
     xIsNext!: boolean;
     winner!: string | undefined;
     width = 8;
     height = 8;
-    highlightedSqs!: number[];
+    highlightedSqs!: locations;
     counter = { X: 2, O: 2 };
-    newFlip!: number[];
+    newFlip!: locations;
 
     constructor() {
         this.newGame();
@@ -23,13 +25,23 @@ export class BoardComponent implements OnInit {
     ngOnInit(): void {}
 
     newGame() {
-        this.squares = Array(this.height * this.width).fill(undefined);
+        // this.squares = Array(this.height * this.width).fill(undefined);
+        this.squares = [];
+        for (let row = 0; row < this.height; row++) {
+            this.squares.push([]);
+            for (let col = 0; col < this.width; col++) {
+                this.squares[row][col] = undefined;
+            }
+        }
+
         this.highlightedSqs = [];
         //TODO: math this:
-        this.squares[27] = 'O';
-        this.squares[28] = 'X';
-        this.squares[35] = 'X';
-        this.squares[36] = 'O';
+
+        this.squares[this.height / 2 - 1][this.width / 2 - 1] = 'O';
+        this.squares[this.height / 2 - 1][this.width / 2] = 'X';
+        this.squares[this.height / 2][this.width / 2] = 'O';
+        this.squares[this.height / 2][this.width / 2 - 1] = 'X';
+
         this.winner = undefined;
         this.newFlip = [];
         this.xIsNext = true;
@@ -40,44 +52,68 @@ export class BoardComponent implements OnInit {
         return this.xIsNext ? 'X' : 'O';
     }
 
-    flipperMoves(idx: number) {
-        let finalFlippedAr: number[] = [];
+    flipperMoves(row: number, col: number) {
+        let finalFlippedAr: locations = [];
         // calculates all possible directions to be checked with respect to each cell, then stores the math calc to reach the idx of each cell to be checked
         let checkedDirections = [
-            -(this.width + 1),
-            -this.width,
-            -this.width - 1,
-            -1,
-            1,
-            this.width - 1,
-            this.width,
-            this.width + 1,
+            {
+                row: -1,
+                col: -1,
+            },
+            {
+                row: -1,
+                col: 0,
+            },
+            {
+                row: -1,
+                col: 1,
+            },
+            {
+                row: 0,
+                col: -1,
+            },
+            {
+                row: 0,
+                col: 1,
+            },
+            {
+                row: 1,
+                col: -1,
+            },
+            {
+                row: 1,
+                col: 0,
+            },
+            {
+                row: 1,
+                col: 1,
+            },
         ];
 
-        //
         checkedDirections.forEach((direction) => {
             //checkedIdx is the current adjacent cell being checked
-            let checkedIdx = idx + direction;
-            //
-            let possibleFlipAr = [];
+            let checkedRow = row + direction.row;
+            let checkedCol = col + direction.col;
+
+            let possibleFlipAr: [number, number][] = [];
 
             //the cell is filled AND what's filled is not equal to the token of the curr player
             while (
-                this.squares[checkedIdx] &&
-                this.squares[checkedIdx] !== this.player
+                this.squares[checkedRow] &&
+                this.squares[checkedRow][checkedCol] &&
+                this.squares[checkedRow][checkedCol] !== this.player
             ) {
-                //then - push the idx of the checked cell possible to be flipped into an array
-                possibleFlipAr.push(checkedIdx);
+                possibleFlipAr.push([checkedRow, checkedCol]);
                 // the checkedcell's value then becomes the value of the cell to be flipped
-                checkedIdx += direction;
-                console.log('idx is', idx, 'possibleFlipAr', possibleFlipAr);
+                checkedRow += direction.row;
+                checkedCol += direction.col;
             }
             if (
-                this.squares[checkedIdx] === this.player &&
+                this.squares[checkedRow] &&
+                this.squares[checkedRow][checkedCol] === this.player &&
                 possibleFlipAr.length > 0
             ) {
                 finalFlippedAr = finalFlippedAr.concat(possibleFlipAr);
-                console.log('idx is', idx, 'finalFlippedAr', finalFlippedAr);
             }
         });
         return finalFlippedAr;
@@ -86,33 +122,35 @@ export class BoardComponent implements OnInit {
     //bug - highlights weird ones
     highlightMoves() {
         this.highlightedSqs = [];
-        this.squares.forEach((square, idx) => {
-            if (!square) {
-                let highlightMoves = this.flipperMoves(idx);
-                if (highlightMoves.length) {
-                    this.highlightedSqs.push(idx);
+        this.squares.forEach((cells, row) => {
+            cells.forEach((square, col) => {
+                if (!square) {
+                    let highlightMoves = this.flipperMoves(row, col);
+                    if (highlightMoves.length) {
+                        this.highlightedSqs.push([row, col]);
+                    }
                 }
-            }
+            });
         });
     }
 
-    isNewFlip(idx: number) {
-        return this.newFlip.includes(idx);
+    isNewFlip(row: number, col: number) {
+        return checkArray(this.newFlip, row, col);
     }
 
-    isHighlight(idx: number) {
-        return this.highlightedSqs.includes(idx);
+    isHighlight(row: number, col: number) {
+        return checkArray(this.highlightedSqs, row, col);
     }
 
-    makeMove(idx: number) {
+    makeMove(row: number, col: number) {
         this.newFlip = [];
-        if (!this.squares[idx] && this.highlightedSqs.includes(idx)) {
-            this.flipperMoves(idx).forEach((currIdx) => {
-                // this.isNewFlip(currIdx);
-                this.squares[currIdx] = this.player;
-                this.newFlip.push(currIdx);
+        if (!this.squares[row][col] && this.isHighlight(row, col)) {
+            this.flipperMoves(row, col).forEach((location) => {
+                this.squares[location[0]][location[1]] = this.player;
+                this.newFlip.push(location);
             });
-            this.squares.splice(idx, 1, this.player);
+            // this.squares.splice(idx, 1, this.player);
+            this.squares[row][col] = this.player;
             this.xIsNext = !this.xIsNext;
             this.highlightMoves();
         }
@@ -129,10 +167,12 @@ export class BoardComponent implements OnInit {
 
     calcWinner() {
         this.counter = { X: 0, O: 0 };
-        this.squares.forEach((square) => {
-            if (square) {
-                this.counter[square]++;
-            }
+        this.squares.forEach((cells) => {
+            cells.forEach((square) => {
+                if (square) {
+                    this.counter[square]++;
+                }
+            });
         });
 
         console.log('counter is', this.counter);
@@ -158,4 +198,10 @@ export class BoardComponent implements OnInit {
 
         return undefined;
     }
+}
+
+function checkArray(checkedArr: locations, row: number, col: number) {
+    return checkedArr.some((squareIdx) => {
+        return squareIdx[0] === row && squareIdx[1] === col;
+    });
 }

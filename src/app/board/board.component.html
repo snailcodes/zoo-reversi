@@ -43,13 +43,15 @@
 </section>
 
 <main>
-    <app-square
-        *ngFor="let val of squares; let i = index"
-        [value]="val"
-        [player]="player"
-        [isHighlight]="isHighlight(i)"
-        (click)="makeMove(i)"
-        [class.highlight]="isHighlight(i)"
-        [class.flipped]="isNewFlip(i)"
-    ></app-square>
+    <div class="row" *ngFor="let cells of this.squares; let row = index">
+        <app-square
+            *ngFor="let val of cells; let col = index"
+            [value]="val"
+            [player]="player"
+            [isHighlight]="isHighlight(row, col)"
+            (click)="makeMove(row, col)"
+            [class.highlight]="isHighlight(row, col)"
+            [class.flipped]="isNewFlip(row, col)"
+        ></app-square>
+    </div>
 </main>
