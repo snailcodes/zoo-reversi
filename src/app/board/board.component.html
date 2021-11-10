@@ -8,17 +8,17 @@
         <div *ngIf="winner" class="message" [ngSwitch]="isXwinner()">
             <img
                 *ngSwitchCase="true"
-                src="/assets/art/emote_star.png"
+                src="./assets/art/emote_star.png"
                 alt="win"
             />
             <img
                 *ngSwitchCase="false"
-                src="/assets/art/emote_anger.png"
+                src="./assets/art/emote_anger.png"
                 alt="lose"
             />
             <div *ngSwitchCase="undefined"></div>
         </div>
-        <img src="/assets/art/penguin_details.png" alt="playerXImg" />
+        <img src="./assets/art/penguin_details.png" alt="playerXImg" />
     </div>
     <div class="score">{{ counter.X }}</div>
     <div class="score">{{ counter.O }}</div>
@@ -28,17 +28,17 @@
         <div *ngIf="winner" class="message" [ngSwitch]="isXwinner()">
             <img
                 *ngSwitchCase="false"
-                src="/assets/art/emote_star.png"
+                src="./assets/art/emote_star.png"
                 alt="win"
             />
             <img
                 *ngSwitchCase="true"
-                src="/assets/art/emote_anger.png"
+                src="./assets/art/emote_anger.png"
                 alt="lose"
             />
             <div *ngSwitchCase="undefined"></div>
         </div>
-        <img src="/assets/art/parrot_details.png" alt="playerOImg" />
+        <img src="./assets/art/parrot_details.png" alt="playerOImg" />
     </div>
 </section>
 
