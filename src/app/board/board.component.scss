@@ -107,6 +107,21 @@ button {
     font-weight: 800;
     font-size: 1.5em;
     cursor: pointer;
+    transition: background-color 1s;
+
+    margin-bottom: 0.5em;
+    box-shadow: 0 4px #999;
+    padding: 15px 25px;
+
+    &:hover {
+        background-color: rgb(45, 78, 40);
+    }
+
+    &:active {
+        background-color: rgb(45, 78, 40);
+        box-shadow: 0 4px #666;
+        transform: translateY(4px);
+    }
 }
 
 .flipped {
